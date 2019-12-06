@@ -14,3 +14,9 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+// $router->group(['prefix' => 'api'], function ($router) {
+//     $router->post('products', [
+//     'as' => 'products', 'uses' => 'ProductController@store'
+//     ]);
+// });
