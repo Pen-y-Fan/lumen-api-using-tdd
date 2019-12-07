@@ -1,5 +1,5 @@
 # APIs in Lumen Using TDD
-
+<!-- cSpell: ignore classmap autoloading phpunit dumpautoload PHPunit Bergmann laragon testsuites testsuite wisoky --->
 Based on:
 
 - [APIs in Laravel Using TDD](https://www.youtube.com/playlist?list=PL3ZhWMazGi9KGG64X_HJlZ_sQuvyFGoMo)
@@ -134,13 +134,13 @@ To run PHPUnit with the version of PHPUnit installed by Lumen:
 - On linux / mac:
 
 ```sh
-./vendor/bin/PHPunit /tests/Feature/Http/Controllers/Api/ProductControllerTest.php
+./vendor/bin/phpunit /tests/Feature/Http/Controllers/Api/ProductControllerTest.php
 ```
 
 - On windows:
 
 ```sh
-.\vendor\bin\PHPunit tests\Feature\Http\Controllers\Api\ProductControllerTest.php
+.\vendor\bin\PHPUnit tests\Feature\Http\Controllers\Api\ProductControllerTest.php
 ```
 
 ```text
@@ -294,7 +294,7 @@ Copy:
 
 - from app\\**User.php** to app\\**Product.php**
   - Rename and class **Product**
-  - Remove the authentacable and tratests etc.
+  - Remove the the traits
 
 ```php
 <?php
@@ -429,3 +429,191 @@ OK (1 test, 1 assertion)
 ```
 
 This is a forced demonstration of how to pass the test.
+
+### Adding the database
+
+For testing purposes configure phpunit.xml to use a sqlite database in memory.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         bootstrap="bootstrap/app.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false">
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory suffix="Test.php">./tests</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./app</directory>
+        </whitelist>
+    </filter>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="DB_CONNECTION" value="sqlite"/> <!-- Add -->
+        <env name="DB_DATABASE" value=":memory:"/> <!-- Add -->
+    </php>
+</phpunit>
+```
+
+Next updated the test to confirm the data is being created in the database
+
+- Use faker to generate some data
+
+```php
+public function canCreateAProduct(): void
+{
+    $faker = Factory::create();
+
+    // When
+        // post request create product
+    $response = $this->call('POST', '/api/products', [
+        'name'  => $name = $faker->company,
+        'slug'  => $slug = Str::slug($name),
+        'price' => $price = random_int(10, 100),
+    ]);
+
+    // Then
+        // The return response code is 'Created' (201)
+    $this->assertEquals(201, $response->status());
+
+        // Then confirm the database has the record
+    $this->seeInDatabase('products', [
+        'name'  => $name,
+        'slug'  => $slug,
+        'price' => $price,
+        ]);
+}
+```
+
+Run the test and it fails, as expected
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+F                                                                   1 / 1 (100%)
+
+Time: 361 ms, Memory: 16.00 MB
+
+There was 1 failure:
+
+1) Tests\Feature\Http\Controllers\ProductControllerTest::canCreateAProduct
+Unable to find row in database table [products] that matched attributes [{"name":"Jacobs-Wisoky","slug":"jacobs-wisoky","price":46}].
+Failed asserting that 0 is greater than 0.
+
+C:\laragon\www\lumen-api\vendor\laravel\lumen-framework\src\Testing\TestCase.php:143
+C:\laragon\www\lumen-api\tests\Feature\Http\Controllers\ProductControllerTest.php:39
+
+FAILURES!
+Tests: 1, Assertions: 2, Failures: 1.
+```
+
+To get this test to pass:
+
+- The products table (migration) needs to have the fields
+- The controller needs to receive the request and add it to the database
+
+Open the migration **...create_products_table.php**
+
+Add the fields image, name, slug and price to the table:
+
+```php
+public function up()
+{
+    Schema::create('products', function (Blueprint $table) {
+        $table->bigIncrements('id');
+        // Add these fields:
+        $table->integer('image')->unsigned()->nullable();
+        $table->string('name', 64);
+        $table->string('slug', 64)->unique();
+        $table->integer('price')->unsigned();
+        $table->timestamps();
+    });
+}
+```
+
+Open the **ProductController.php**:
+
+- Add Request \$request as parameters to the store method
+- Create a Product using the request data.
+- Import the model: Product class
+- Import the slug helper Str class
+
+```php
+use App\Product;
+// ...
+use Illuminate\Support\Str;
+// ...
+/**
+    * Store a post request to the Products table
+    *
+    * @param Request $request
+    * @return JsonResponse
+    */
+public function store(Request $request): JsonResponse
+{
+    $product = Product::create([
+        'name'  => $request->name,
+        'slug'  => Str::slug($request->name),
+        'price' => $request->price
+    ]);
+
+    return response()->json(['created' => true], 201);
+}
+```
+
+Run the test and it still fails:
+
+```text
+...
+Failed asserting that 500 matches expected 201.
+...
+```
+
+Open the latest logs file in storage\logs\lumen-2019-12-07.log
+
+```text
+....
+[previous exception] [object] (PDOException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: products.slug at C:\\laragon\\www\\lumen-api\\vendor\\illuminate\\database\\Connection.php:459)
+[stacktrace]
+....
+```
+
+The error is ambiguous, it is actually a mass assignment error, open the mode **Product.php**
+
+- Add the fillable properties.
+
+```php
+class Product extends Model
+{
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'image', 'name', 'slug', 'price',
+    ];
+}
+```
+
+Re-run the test and it passes
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 293 ms, Memory: 16.00 MB
+
+OK (1 test, 2 assertions)
+```
