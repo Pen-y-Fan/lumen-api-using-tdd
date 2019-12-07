@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use Faker\Factory;
 use Tests\TestCase;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Support\Str;
 
 class ProductControllerTest extends TestCase
 {
@@ -16,12 +18,25 @@ class ProductControllerTest extends TestCase
      */
     public function canCreateAProduct(): void
     {
+        $faker = Factory::create();
+
         // When
             // post request create product
-        $response = $this->call('POST', '/api/products');
+        $response = $this->call('POST', '/api/products', [
+            'name'  => $name = $faker->company,
+            'slug'  => $slug = Str::slug($name),
+            'price' => $price = random_int(10, 100),
+        ]);
 
         // Then
-            // Created response code (201)
+            // The return response code is 'Created' (201)
         $this->assertEquals(201, $response->status());
+
+            // And the database has the record
+        $this->seeInDatabase('products', [
+            'name'  => $name,
+            'slug'  => $slug,
+            'price' => $price,
+            ]);
     }
 }
