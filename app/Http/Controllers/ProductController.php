@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -16,7 +18,7 @@ class ProductController extends Controller
     {
         //
     }
-
+    
     /**
      * Store a post request to the Products table
      *
@@ -25,7 +27,12 @@ class ProductController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $product = Product::create([
+            'name'  => $request->name,
+            'slug'  => Str::slug($request->name),
+            'price' => $request->price
+        ]);
+
         return response()->json(['created' => true], 201);
     }
-    //
 }
