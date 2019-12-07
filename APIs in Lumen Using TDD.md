@@ -478,7 +478,6 @@ public function canCreateAProduct(): void
         // post request create product
     $response = $this->call('POST', '/api/products', [
         'name'  => $name = $faker->company,
-        'slug'  => $slug = Str::slug($name),
         'price' => $price = random_int(10, 100),
     ]);
 
@@ -616,4 +615,49 @@ PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
 Time: 293 ms, Memory: 16.00 MB
 
 OK (1 test, 2 assertions)
+```
+
+Update the **ProductControllerTest.php** to confirm the response content
+
+```php
+// ...
+$content = json_decode($response->content(), true);
+
+$this->assertArrayHasKey('id', $content);
+$this->assertArrayHasKey('name', $content);
+$this->assertArrayHasKey('slug', $content);
+$this->assertArrayHasKey('price', $content);
+
+$this->assertSame($content['name'], $name);
+$this->assertSame($content['slug'], $slug);
+$this->assertSame($content['price'], $price);
+// ...
+```
+
+The test now fails.
+
+```text
+...
+Failed asserting that an array has the key 'id'.
+...
+```
+
+Update the **ProductController.php** to return the `$product` in the response
+
+```php
+// ...
+return response()->json($product, 201);
+// ...
+```
+
+Re-run the test and it passes
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 295 ms, Memory: 16.00 MB
+
+OK (1 test, 9 assertions)
 ```

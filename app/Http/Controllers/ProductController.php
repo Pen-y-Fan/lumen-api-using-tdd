@@ -33,6 +33,6 @@ class ProductController extends Controller
             'price' => $request->price
         ]);
 
-        return response()->json(['created' => true], 201);
+        return response()->json($product, 201);
     }
 }

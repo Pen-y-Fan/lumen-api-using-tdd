@@ -24,7 +24,6 @@ class ProductControllerTest extends TestCase
             // post request create product
         $response = $this->call('POST', '/api/products', [
             'name'  => $name = $faker->company,
-            'slug'  => $slug = Str::slug($name),
             'price' => $price = random_int(10, 100),
         ]);
 
@@ -32,11 +31,23 @@ class ProductControllerTest extends TestCase
             // The return response code is 'Created' (201)
         $this->assertEquals(201, $response->status());
 
-            // And the database has the record
+        $content = json_decode($response->content(), true);
+        $slug = Str::slug($name);
+
+        $this->assertArrayHasKey('id', $content);
+        $this->assertArrayHasKey('name', $content);
+        $this->assertArrayHasKey('slug', $content);
+        $this->assertArrayHasKey('price', $content);
+
+        $this->assertSame($content['name'], $name);
+        $this->assertSame($content['slug'], $slug);
+        $this->assertSame($content['price'], $price);
+
+        // And the database has the record
         $this->seeInDatabase('products', [
             'name'  => $name,
             'slug'  => $slug,
             'price' => $price,
-            ]);
+        ]);
     }
 }
