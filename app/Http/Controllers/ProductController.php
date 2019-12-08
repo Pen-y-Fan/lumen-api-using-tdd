@@ -36,4 +36,17 @@ class ProductController extends Controller
 
         return response()->json(new ProductResource($product), 201);
     }
+
+    /**
+     * Show a product from the Product DB
+     *
+     * @param Request $request, product Id $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
+    {
+        $product = Product::findOrFail($id);
+    
+        return response()->json(new ProductResource($product));
+    }
 }

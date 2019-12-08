@@ -174,7 +174,7 @@ The tutor recommends the following 3-steps be followed most of the time:
 
 The plan is to create the authentication later, so we can start with **When**
 
-- \$this->json('POST', '/api/products');
+- \$this->json('POST', '/api/product');
 - will return a response
 - data will need to be passed to the post request, as an array
   - []
@@ -199,7 +199,7 @@ class ProductControllerTest extends TestCase
             // user is authenticated
         // When
             // post request create product
-            $response = $this->json('POST', '/api/products', []);
+            $response = $this->json('POST', '/api/product', []);
         // Then
             // product exists
     }
@@ -247,7 +247,7 @@ public function canCreateAProduct()
         // user is authenticated
     // When
         // post request create product
-        $response = $this->json('POST', '/api/products', []);
+        $response = $this->json('POST', '/api/product', []);
     // Then
         // product exists
         $response->assertStatus(201);
@@ -476,7 +476,7 @@ public function canCreateAProduct(): void
 
     // When
         // post request create product
-    $response = $this->call('POST', '/api/products', [
+    $response = $this->call('POST', '/api/product', [
         'name'  => $name = $faker->company,
         'price' => $price = random_int(10, 100),
     ]);
@@ -690,7 +690,7 @@ class ProductResource extends JsonResource
             'id'         => $this->id,
             'name'       => $this->name,
             'slug'       => $this->slug,
-            'price'      => $this->price,
+            'price'      => (int)$this->price,
             'created_at' => (string)$this->created_at,
         ];
     }
@@ -716,7 +716,7 @@ Now only the required fields are returned, instead of all the fields (including 
 For confirmation add the following to the test:
 
 ```php
-\Log::info(1, $content);
+\Log::info(1, [$content]);
 ```
 
 Then open the log file \lumen-api\storage\logs\\**lumen-2019-12-08.log**
@@ -726,3 +726,237 @@ Then open the log file \lumen-api\storage\logs\\**lumen-2019-12-08.log**
 ```
 
 Remove the log line from the test.
+
+## Use a Product Model Factory
+
+Instead of generating Product data, in each test, a factory can be used to generate this data. However the `artisan make:factory` command isn't available in Lumen, instead use the **ModelFactory.php** built in, this has all the factories defined in one file. There is an example User factory already defined, which can be copied and modified, as required.
+
+```php
+<?php
+
+// Add this use for Str
+use Illuminate\Support\Str;
+
+
+/*
+|--------------------------------------------------------------------------
+| Model Factories
+|--------------------------------------------------------------------------
+|
+| Here you may define all of your model factories. Model factories give
+| you a convenient way to create models for testing and seeding your
+| database. Just tell the factory how a default model should look.
+|
+*/
+
+// Existing user factory:
+$factory->define(App\User::class, function (Faker\Generator $faker) {
+    return [
+        'name' => $faker->name,
+        'email' => $faker->email,
+    ];
+});
+
+// Add a new Product factory:
+$factory->define(App\Product::class, function (Faker\Generator $faker) {
+
+    $name = $faker->sentence(3);
+
+    return [
+        'name'  => $name,
+        'slug'  => Str::slug($name),
+        'price' => random_int(10, 100),
+    ];
+});
+```
+
+Create a test to get a product
+
+```php
+/** @test */
+public function canReturnAProduct()
+{
+// Given
+    $product = factory('App\Product')->create();
+// When
+    $this->json('GET', "api/product/$product->id");
+// Then
+    $this->assertResponseOk();
+// Then
+    $this->seeInDatabase('products', [
+        'name'  => $product->name,
+        'slug'  => $product->slug,
+        'price' => $product->price,
+    ]);
+}
+```
+
+Run the test and it fails, as expected.
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+F                                                                   1 / 1 (100%)
+
+Time: 452 ms, Memory: 16.00 MB
+
+There was 1 failure:
+
+1) Tests\Feature\Http\Controllers\ProductControllerTest::canReturnAProduct
+Expected status code 200, got 404.
+Failed asserting that false is true.
+```
+
+- There is no get route for product/id
+- There is no controller to return the data
+
+Open **web.php**
+
+- Refactor the post/store method
+- Add the get method for product/{id}
+
+```php
+$router->group(['prefix' => 'api'], function ($router) {
+    $router->post('product', 'ProductController@store');
+    $router->get('product/{id}', 'ProductController@show');
+});
+```
+
+Open **ProductController.php**
+
+- Add the show method
+
+```php
+public function show(int $id)
+{
+    // Code
+}
+```
+
+The test now passes
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 322 ms, Memory: 16.00 MB
+
+OK (1 test, 2 assertions)
+```
+
+Now expand the test to confirm the return data is actually correct.
+
+Open the **ProductControllerTest.php**
+
+- Add to the test
+
+```php
+/** @test */
+public function canReturnAProduct()
+{
+    // Given one product is created and added to the database
+    $product = factory('App\Product')->create();
+
+    // When the endpoint for product is reached
+    $this->json('GET', "api/product/$product->id");
+
+    // Then the response is 200
+    $this->assertResponseOk();
+
+    // Then the database has the data
+    $this->seeInDatabase('products', [
+        'name'  => $product->name,
+        'slug'  => $product->slug,
+        'price' => $product->price,
+    ]);
+
+    // Then the response has the original data
+    $this->seeJsonContains([
+        "name"  => $product->name,
+        "slug"  => $product->slug,
+        "price" => $product->price
+    ]);
+}
+```
+
+The test now fails.
+
+Open the **ProductController.php**
+
+- Find the product, based on the supplied id
+- Return it the using the same ProductResource as the store method
+
+```php
+public function show(int $id): JsonResponse
+{
+    $product = Product::findOrFail($id);
+
+    return response()->json(new ProductResource($product));
+}
+```
+
+Run the tests and they now pass
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 293 ms, Memory: 16.00 MB
+
+OK (1 test, 5 assertions)
+```
+
+Refactor the **canCreateAProduct** method
+
+- Use the Product factory to create a product, with the make method.
+- Instead of using call POST, use json method, this has useful helper methods to verify the data
+- Change the method to check the status code to `$this->assertResponseStatus(201);`
+- Use the `seeJsonContains` method to confirm the response data
+
+```php
+/** @test  */
+public function canCreateAProduct(): void
+{
+    $product = factory('App\Product')->make();
+
+    // When
+        // post request create product
+    $this->json('POST', '/api/product', [
+        'name'  => $name = $product->name,
+        'price' => $price = $product->price,
+    ]);
+    $slug = Str::slug($name);
+
+    // Then
+        // The return response code is 'Created' (201)
+    $this->assertResponseStatus(201);
+
+    // Confirm the data returned is the same
+    $this->seeJsonContains([
+        "name"  => $product->name,
+        "slug"  => $product->slug,
+        "price" => $product->price
+    ]);
+
+    // And the database has the record
+    $this->seeInDatabase('products', [
+        'name'  => $name,
+        'slug'  => $slug,
+        'price' => $price,
+    ]);
+}
+```
+
+Run all the tests and they pass
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+..                                                                  2 / 2 (100%)
+
+Time: 279 ms, Memory: 18.00 MB
+
+OK (2 tests, 10 assertions)
+```

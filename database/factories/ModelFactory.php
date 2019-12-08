@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 /*
 |--------------------------------------------------------------------------
 | Model Factories
@@ -15,5 +17,17 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
     return [
         'name' => $faker->name,
         'email' => $faker->email,
+    ];
+});
+
+
+$factory->define(App\Product::class, function (Faker\Generator $faker) {
+
+    $name = $faker->sentence(3);
+
+    return [
+        'name'  => $name,
+        'slug'  => Str::slug($name),
+        'price' => random_int(10, 100),
     ];
 });

@@ -12,37 +12,29 @@ class ProductControllerTest extends TestCase
 {
     use DatabaseMigrations;
 
-    /**
-     * Confirm a Product can be added to the database.
-     * @test
-     */
+    /** @test  */
     public function canCreateAProduct(): void
     {
-        $faker = Factory::create();
+        $product = factory('App\Product')->make();
 
         // When
             // post request create product
-        $response = $this->call('POST', '/api/products', [
-            'name'  => $name = $faker->company,
-            'price' => $price = random_int(10, 100),
+        $this->json('POST', '/api/product', [
+            'name'  => $name = $product->name,
+            'price' => $price = $product->price,
         ]);
-
+        $slug = Str::slug($name);
+        
         // Then
             // The return response code is 'Created' (201)
-        $this->assertEquals(201, $response->status());
+        $this->assertResponseStatus(201);
 
-        $content = json_decode($response->content(), true);
-        $slug = Str::slug($name);
-
-        $this->assertArrayHasKey('id', $content);
-        $this->assertArrayHasKey('name', $content);
-        $this->assertArrayHasKey('slug', $content);
-        $this->assertArrayHasKey('price', $content);
-        $this->assertArrayHasKey('created_at', $content);
-
-        $this->assertSame($content['name'], $name);
-        $this->assertSame($content['slug'], $slug);
-        $this->assertSame($content['price'], $price);
+            // Confirm the data returned is the same
+        $this->seeJsonContains([
+            "name"  => $product->name,
+            "slug"  => $product->slug,
+            "price" => $product->price
+        ]);
 
         // And the database has the record
         $this->seeInDatabase('products', [
@@ -50,6 +42,33 @@ class ProductControllerTest extends TestCase
             'slug'  => $slug,
             'price' => $price,
         ]);
-        \Log::info(1, $content);
+    }
+
+
+    /** @test */
+    public function canReturnAProduct()
+    {
+    // Given
+        $product = factory('App\Product')->create();
+
+    // When
+        $this->json('GET', "api/product/$product->id");
+
+    // Then
+        $this->assertResponseOk();
+
+    // Then
+        $this->seeInDatabase('products', [
+            "name"  => $product->name,
+            "slug"  => $product->slug,
+            "price" => $product->price,
+        ]);
+
+    // Then
+        $this->seeJsonContains([
+            "name"  => $product->name,
+            "slug"  => $product->slug,
+            "price" => $product->price
+        ]);
     }
 }
