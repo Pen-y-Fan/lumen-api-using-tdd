@@ -40,12 +40,32 @@ class ProductController extends Controller
     /**
      * Show a product from the Product DB
      *
-     * @param Request $request, product Id $id
+     * @param int $id, product Id
      * @return JsonResponse
      */
     public function show(int $id): JsonResponse
     {
         $product = Product::findOrFail($id);
+    
+        return response()->json(new ProductResource($product));
+    }
+
+    /**
+     * Update a product already in the Product DB
+     *
+     * @param Request $request the updated product data
+     * @param integer $id the ProductId of the product to be updated
+     * @return JsonResponse
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $product = Product::findOrFail($id);
+
+        $product->update([
+            'name'  => $request->name,
+            'slug'  => Str::slug($request->name),
+            'price' => $request->price,
+        ]);
     
         return response()->json(new ProductResource($product));
     }

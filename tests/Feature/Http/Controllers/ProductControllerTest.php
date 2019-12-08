@@ -78,8 +78,54 @@ class ProductControllerTest extends TestCase
         // Given
             // Product -1 does not exist.
         // When
-            $response = $this->json('GET', 'api/products/-1');
+            $this->json('GET', 'api/products/-1');
         // Then
-            $response->assertResponseStatus(404);
+            $this->assertResponseStatus(404);
+    }
+
+    /** @test */
+    public function willFailWithA404IfAProductWeWantToUpdateIsNotFound()
+    {
+        // Given no product
+        // When
+        $this->json('PUT', 'api/product/-1', []);
+
+        // Then
+        $this->assertResponseStatus(404);
+    }
+
+
+    /** @test */
+    public function canUpdateAProduct()
+    {
+        // Given
+        $product = factory('App\Product')->create();
+        // When
+        $newProduct = [
+            "name"  => $product->name . '_updated',
+            "slug"  => Str::slug($product->name . '_updated'),
+            "price" => $product->price + 10,
+        ];
+
+        $this->json('PUT', 'api/product/' . $product->id, $newProduct);
+        
+        // Then
+        $this->assertResponseOk();
+
+        // Then
+        $this->seeJsonContains($newProduct);
+
+        // Then
+        $this->seeInDatabase(
+            'products',
+            [
+            'id'         => $product->id,
+            'name'       => $newProduct['name'],
+            'slug'       => $newProduct['slug'],
+            'price'      => $newProduct['price'],
+            'created_at' => (string)$product->created_at,
+            'updated_at' => (string)$product->updated_at,
+            ]
+        );
     }
 }

@@ -989,3 +989,195 @@ OK (1 test, 1 assertion)
 ```
 
 Run all tests and they all pass.
+
+## Update a product
+
+Next focus on the update route and the tests required.
+
+In the **ProductControllerTest.php**:
+
+- Create a method for will fail with a 404 if product we want to update is not found.
+- Test is similar to the show test.
+- Change to PUT.
+
+```php
+/**
+ * @test
+*/
+public function will_fail_with_a_404_if_product_we_want_to_update_is_not_found()
+{
+    // Given
+    // When
+    $response = $this->json('PUT', 'api/products/-1');
+    // Then
+    $response->assertStatus(404);
+}
+```
+
+This actually passes!
+
+Now create a test for can update a product in **ProductControllerTest.php**
+
+```php
+/** @test */
+public function canUpdateAProduct()
+{
+    // Given
+    $product = factory('App\Product')->create();
+
+    // When
+    $newProduct = [
+        "name"  => $product->name . '_updated',
+        "slug"  => Str::slug($product->name . '_updated'),
+        "price" => $product->price + 10,
+    ];
+
+    $this->json('PUT', 'api/product/' . $product->id, $newProduct);
+
+    // Then
+    $this->assertResponseOk();
+}
+```
+
+the test fails with 404:
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+F                                                                   1 / 1 (100%)
+
+Time: 288 ms, Memory: 16.00 MB
+
+There was 1 failure:
+
+1) Tests\Feature\Http\Controllers\ProductControllerTest::canUpdateAProduct
+Expected status code 200, got 404.
+Failed asserting that false is true.
+```
+
+Let see if we can get the test to pass.
+
+First open **web.php**
+
+- Add the `put` route
+
+```php
+$router->group(['prefix' => 'api'], function ($router) {
+    $router->post('product', 'ProductController@store');
+    $router->get('product/{id:[0-9]+}', 'ProductController@show');
+    $router->put('product/{id:[0-9]+}', 'ProductController@update'); // Added
+});
+```
+
+The test still failes.
+
+Open the **ProductController.php**:
+
+- Add an update method.
+
+```php
+/**
+ * Update a product already in the Product DB
+ *
+ * @param Request $request, product Id $id
+ * @return JsonResponse
+ */
+public function update(Request $request, int $id)
+{
+    $product = Product::findOrFail($id);
+}
+```
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 300 ms, Memory: 18.00 MB
+
+OK (1 test, 1 assertion)
+
+Terminal will be reused by tasks, press any key to close it.
+```
+
+No the test pass, it can eb extended
+
+Open **ProductControllerTest.php**
+
+In the test add another assert to confirm the database has been updated:
+
+```php
+// Then
+$this->assertResponseOk();
+
+// Then
+$this->seeInDatabase('products', $newProduct);
+
+// Then
+$this->seeJsonContains($newProduct);
+```
+
+The test now fails:
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+F                                                                   1 / 1 (100%)
+
+Time: 306 ms, Memory: 18.00 MB
+
+There was 1 failure:
+
+1) Tests\Feature\Http\Controllers\ProductControllerTest::canUpdateAProduct
+Unable to find row in database table [products] that matched attributes [{"name":"Animi veritatis dignissimos._updated","slug":"animi-veritatis-dignissimos_updated","price":102}].
+Failed asserting that 0 is greater than 0.
+```
+
+The data needs to be persisted to the database
+
+```php
+/**
+ * Update a product already in the Product DB
+ *
+ * @param Request $request
+ * @param integer $id the ProductId to be updated
+ * @return JsonResponse
+ */
+public function update(Request $request, int $id): JsonResponse
+{
+    $product = Product::findOrFail($id);
+
+    $product->update([
+        'name'  => $request->name,
+        'slug'  => Str::slug($request->name),
+        'price' => $request->price,
+    ]);
+
+
+    return response()->json(new ProductResource($product));
+}
+```
+
+The test now passes
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 296 ms, Memory: 18.00 MB
+
+OK (1 test, 5 assertions)
+```
+
+Now run all the tests adn they all pass :)
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.....                                                               5 / 5 (100%)
+
+Time: 401 ms, Memory: 18.00 MB
+
+OK (5 tests, 17 assertions)
+```
