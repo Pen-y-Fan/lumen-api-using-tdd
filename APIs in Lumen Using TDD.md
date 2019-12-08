@@ -627,6 +627,7 @@ $this->assertArrayHasKey('id', $content);
 $this->assertArrayHasKey('name', $content);
 $this->assertArrayHasKey('slug', $content);
 $this->assertArrayHasKey('price', $content);
+$this->assertArrayHasKey('created_at', $content);
 
 $this->assertSame($content['name'], $name);
 $this->assertSame($content['slug'], $slug);
@@ -659,5 +660,69 @@ PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
 
 Time: 295 ms, Memory: 16.00 MB
 
-OK (1 test, 9 assertions)
+OK (1 test, 10 assertions)
 ```
+
+### Resources for Product
+
+> API resources is a transformation layer that transforms your eloquent models and the JSON responses that are return to the end user.
+
+The `artisan make:resource` command isn't available in Lumen, so copy an existing resource from another project (or copy Illuminate\Http\Resources\Json\JsonResource removing all methods except the toArray). Create the resource app\\Http\\Resources\\**ProductResource.php**
+
+```php
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class ProductResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return array
+     */
+    public function toArray($request): array
+    {
+        return [
+            'id'         => $this->id,
+            'name'       => $this->name,
+            'slug'       => $this->slug,
+            'price'      => $this->price,
+            'created_at' => (string)$this->created_at,
+        ];
+    }
+}
+```
+
+This will override the toArray method in the JsonResource class.
+
+Next the store action can use the resource. Open the **ProductController.php**
+
+- Update the return response to return `new ProductResource($product)`:
+
+```php
+// Was:
+// return response()->json($product, 201);
+
+// Now:
+return response()->json(new ProductResource($product), 201);
+```
+
+Now only the required fields are returned, instead of all the fields (including updated_at)
+
+For confirmation add the following to the test:
+
+```php
+\Log::info(1, $content);
+```
+
+Then open the log file \lumen-api\storage\logs\\**lumen-2019-12-08.log**
+
+```text
+[2019-12-08 11:33:31] testing.INFO: 1 {"id":1,"name":"Williamson-Ryan","slug":"williamson-ryan","price":95,"created_at":"2019-12-08 11:33:31"}
+```
+
+Remove the log line from the test.

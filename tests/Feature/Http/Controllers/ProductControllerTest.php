@@ -38,6 +38,7 @@ class ProductControllerTest extends TestCase
         $this->assertArrayHasKey('name', $content);
         $this->assertArrayHasKey('slug', $content);
         $this->assertArrayHasKey('price', $content);
+        $this->assertArrayHasKey('created_at', $content);
 
         $this->assertSame($content['name'], $name);
         $this->assertSame($content['slug'], $slug);
@@ -49,5 +50,6 @@ class ProductControllerTest extends TestCase
             'slug'  => $slug,
             'price' => $price,
         ]);
+        \Log::info(1, $content);
     }
 }

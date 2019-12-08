@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductResource;
 use App\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,6 @@ class ProductController extends Controller
             'price' => $request->price
         ]);
 
-        return response()->json($product, 201);
+        return response()->json(new ProductResource($product), 201);
     }
 }
