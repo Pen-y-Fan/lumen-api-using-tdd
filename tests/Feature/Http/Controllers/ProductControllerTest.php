@@ -71,4 +71,15 @@ class ProductControllerTest extends TestCase
             "price" => $product->price
         ]);
     }
+
+    /** @test */
+    public function willFailWithA404IfProductIsNotFound()
+    {
+        // Given
+            // Product -1 does not exist.
+        // When
+            $response = $this->json('GET', 'api/products/-1');
+        // Then
+            $response->assertResponseStatus(404);
+    }
 }

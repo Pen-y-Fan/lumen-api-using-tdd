@@ -960,3 +960,32 @@ Time: 279 ms, Memory: 18.00 MB
 
 OK (2 tests, 10 assertions)
 ```
+
+## Testing 404 on Show
+
+```php
+/** @test */
+public function willFailWithA404IfProductIsNotFound()
+{
+    // Given
+        // Product -1 does not exist.
+    // When
+        $response = $this->json('GET', 'api/products/-1');
+    // Then
+        $response->assertStatus(404);
+}
+```
+
+Run a test and it passes.
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 281 ms, Memory: 14.00 MB
+
+OK (1 test, 1 assertion)
+```
+
+Run all tests and they all pass.
