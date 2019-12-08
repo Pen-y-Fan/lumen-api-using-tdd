@@ -1,6 +1,9 @@
 /vendor
 /.idea
+/.vscode
+/database/database.sqlite
 Homestead.json
 Homestead.yaml
 .env
 .phpunit.result.cache
+serve.bat
