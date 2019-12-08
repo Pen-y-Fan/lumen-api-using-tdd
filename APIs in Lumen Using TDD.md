@@ -1,5 +1,5 @@
 # APIs in Lumen Using TDD
-<!-- cSpell: ignore classmap autoloading phpunit dumpautoload PHPunit Bergmann laragon testsuites testsuite wisoky --->
+<!-- cSpell: ignore classmap autoloading phpunit dumpautoload PHPunit Bergmann laragon testsuites testsuite wisoky Animi veritatis dignissimos --->
 Based on:
 
 - [APIs in Laravel Using TDD](https://www.youtube.com/playlist?list=PL3ZhWMazGi9KGG64X_HJlZ_sQuvyFGoMo)
@@ -1003,8 +1003,8 @@ In the **ProductControllerTest.php**:
 ```php
 /**
  * @test
-*/
-public function will_fail_with_a_404_if_product_we_want_to_update_is_not_found()
+ */
+public function willFailWithA404IfAProductWeWantToUpdateIsNotFound()
 {
     // Given
     // When
@@ -1069,7 +1069,7 @@ $router->group(['prefix' => 'api'], function ($router) {
 });
 ```
 
-The test still failes.
+The test still fails.
 
 Open the **ProductController.php**:
 
@@ -1180,4 +1180,180 @@ PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
 Time: 401 ms, Memory: 18.00 MB
 
 OK (5 tests, 17 assertions)
+```
+
+## Delete
+
+Start with a product which doesn't exist, open **ProductControllerTest.php**
+
+```php
+/** @test */
+public function willFailWithA404IfProductWeWantToDeleteIsNotFound()
+{
+    // Given
+    // When
+    $response = $this->json('DELETE', 'api/product/-1');
+    // Then
+    $response->assertStatus(404);
+}
+```
+
+Again, with Lumen, this actually passes!
+
+Now create a test for can delete a product in **ProductControllerTest.php**
+
+```php
+/** @test */
+public function canDeleteAProduct()
+{
+    // Given
+    $product = factory('App\Product')->create();
+    // When
+    $this->json('DELETE', 'api/products/' . $product->id);
+    // Then
+    $this->assertResponseStatus(204);
+}
+```
+
+This test fails
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+F                                                                   1 / 1 (100%)
+
+Time: 911 ms, Memory: 18.00 MB
+
+There was 1 failure:
+
+1) Tests\Feature\Http\Controllers\ProductControllerTest::canDeleteAProduct
+Expected status code 204, got 404.
+Failed asserting that 404 matches expected 204.
+
+C:\laragon\www\lumen-api\vendor\laravel\lumen-framework\src\Testing\Concerns\MakesHttpRequests.php:457
+C:\laragon\www\lumen-api\tests\Feature\Http\Controllers\ProductControllerTest.php:149
+
+FAILURES!
+Tests: 1, Assertions: 1, Failures: 1.
+```
+
+This is known, there is no delete route or destroy method.
+
+Open **web.php**
+
+- Create a delete route
+
+```php
+$router->group(['prefix' => 'api'], function ($router) {
+    $router->post('product', 'ProductController@store');
+    $router->get('product/{id:[0-9]+}', 'ProductController@show');
+    $router->put('product/{id:[0-9]+}', 'ProductController@update');
+    $router->delete('product/{id}', 'ProductController@destroy'); // Added
+});
+```
+
+The test still fails.
+
+Open **ProductController.php**
+
+- Add a destroy method
+
+```php
+public function destroy(int $id)
+{
+    return response()->json(null, 204);
+}
+```
+
+Now the canDeleteAProduct test passes, but the willFailWithA404IfProductWeWantToDeleteIsNotFound test fails!
+
+Refactor the destroy method to delete the requested record.
+
+```php
+public function destroy(int $id)
+{
+    $product = Product::findOrFail($id);
+
+    $product->delete();
+
+    return response()->json([], 204);
+}
+```
+
+The test now passes.
+
+Add another check to confirm the data has been deleted from the database
+
+```php
+/** @test */
+public function canDeleteAProduct()
+{
+    // Given
+    $product = factory('App\Product')->create();
+    // When
+    $this->json('DELETE', 'api/product/' . $product->id);
+    // Then
+    $this->assertResponseStatus(204);
+
+    $this->notSeeInDatabase('products', ['id'  => $product->id,]);
+}
+```
+
+The test still passes
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 470 ms, Memory: 18.00 MB
+
+OK (1 test, 2 assertions)
+```
+
+Open the **web.php**
+
+- Add a regex on the id to only allow numbers `{id:[0-9]+}`
+
+```php
+$router->group(['prefix' => 'api'], function ($router) {
+    $router->post('product', 'ProductController@store');
+    $router->get('product/{id:[0-9]+}', 'ProductController@show');
+    $router->put('product/{id:[0-9]+}', 'ProductController@update');
+    $router->delete('product/{id:[0-9]+}', 'ProductController@destroy');
+});
+```
+
+The tests now fail, due to the check on product `-1`, amend them to check for an id of 999.
+
+```php
+// in method willFailWithA404IfProductIsNotFound()
+$this->json('GET', 'api/product/999');
+// method willFailWithA404IfAProductWeWantToUpdateIsNotFound()
+$this->json('PUT', 'api/product/999', []);
+
+//...
+/** @test */
+public function willFailWithA404IfProductWeWantToDeleteIsNotFound()
+{
+    // Given
+    // When
+    $this->json('DELETE', 'api/product/999'); // Change to 999
+    // Then
+    $this->assertResponseStatus(404);
+}
+
+/** @test */
+public function canDeleteAProduct()
+{
+    // Given
+    $product = factory('App\Product')->create();
+    // When
+    $this->json('DELETE', 'api/product/' . $product->id);
+    // Then
+    $this->assertResponseStatus(204);
+
+    $this->notSeeInDatabase('products', ['id'  => $product->id,]);
+}
+// ...
 ```

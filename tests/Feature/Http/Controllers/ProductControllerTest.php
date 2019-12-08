@@ -18,18 +18,18 @@ class ProductControllerTest extends TestCase
         $product = factory('App\Product')->make();
 
         // When
-            // post request create product
+        // post request create product
         $this->json('POST', '/api/product', [
             'name'  => $name = $product->name,
             'price' => $price = $product->price,
         ]);
         $slug = Str::slug($name);
-        
+
         // Then
-            // The return response code is 'Created' (201)
+        // The return response code is 'Created' (201)
         $this->assertResponseStatus(201);
 
-            // Confirm the data returned is the same
+        // Confirm the data returned is the same
         $this->seeJsonContains([
             "name"  => $product->name,
             "slug"  => $product->slug,
@@ -44,27 +44,26 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-
     /** @test */
     public function canReturnAProduct()
     {
-    // Given
+        // Given
         $product = factory('App\Product')->create();
 
-    // When
+        // When
         $this->json('GET', "api/product/$product->id");
 
-    // Then
+        // Then
         $this->assertResponseOk();
 
-    // Then
+        // Then
         $this->seeInDatabase('products', [
             "name"  => $product->name,
             "slug"  => $product->slug,
             "price" => $product->price,
         ]);
 
-    // Then
+        // Then
         $this->seeJsonContains([
             "name"  => $product->name,
             "slug"  => $product->slug,
@@ -78,9 +77,9 @@ class ProductControllerTest extends TestCase
         // Given
             // Product -1 does not exist.
         // When
-            $this->json('GET', 'api/products/-1');
+        $this->json('GET', 'api/product/999');
         // Then
-            $this->assertResponseStatus(404);
+        $this->assertResponseStatus(404);
     }
 
     /** @test */
@@ -88,7 +87,7 @@ class ProductControllerTest extends TestCase
     {
         // Given no product
         // When
-        $this->json('PUT', 'api/product/-1', []);
+        $this->json('PUT', 'api/product/999', []);
 
         // Then
         $this->assertResponseStatus(404);
@@ -108,7 +107,7 @@ class ProductControllerTest extends TestCase
         ];
 
         $this->json('PUT', 'api/product/' . $product->id, $newProduct);
-        
+
         // Then
         $this->assertResponseOk();
 
@@ -119,13 +118,36 @@ class ProductControllerTest extends TestCase
         $this->seeInDatabase(
             'products',
             [
-            'id'         => $product->id,
-            'name'       => $newProduct['name'],
-            'slug'       => $newProduct['slug'],
-            'price'      => $newProduct['price'],
-            'created_at' => (string)$product->created_at,
-            'updated_at' => (string)$product->updated_at,
+                'id'         => $product->id,
+                'name'       => $newProduct['name'],
+                'slug'       => $newProduct['slug'],
+                'price'      => $newProduct['price'],
+                'created_at' => (string) $product->created_at,
+                'updated_at' => (string) $product->updated_at,
             ]
         );
+    }
+
+    /** @test */
+    public function willFailWithA404IfProductWeWantToDeleteIsNotFound()
+    {
+        // Given
+        // When
+        $this->json('DELETE', 'api/product/999');
+        // Then
+        $this->assertResponseStatus(404);
+    }
+
+    /** @test */
+    public function canDeleteAProduct()
+    {
+        // Given
+        $product = factory('App\Product')->create();
+        // When
+        $this->json('DELETE', 'api/product/' . $product->id);
+        // Then
+        $this->assertResponseStatus(204);
+
+        $this->notSeeInDatabase('products', ['id'  => $product->id,]);
     }
 }
