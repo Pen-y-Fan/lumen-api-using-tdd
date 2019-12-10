@@ -1357,3 +1357,238 @@ public function canDeleteAProduct()
 }
 // ...
 ```
+
+## Index
+
+Index should be the first test in the Test class.
+
+Open **ProductControllerTest.php**
+
+- Start with a test can return a collection fo paginated products
+- As this will be multiple products, three products will be created.
+- The data is returned as a collection with an array, the JSON structure is therefore different.
+
+  - data =>
+
+    - \* => signifies an array
+
+      - then the data structure.
+
+```php
+/** @test */
+public function canReturnACollectionOfPaginatedProducts()
+{
+    $product1 = factory('App\Product')->create();
+    $product2 = factory('App\Product')->create();
+    $product3 = factory('App\Product')->create();
+
+    $this->json('GET', '/api/product');
+
+    $this->assertResponseOk();
+}
+```
+
+Run the test and it fails with code 404.
+
+Open **web.php**
+
+- Add the get route for product to the index method.
+
+```php
+$router->group(['prefix' => 'api'], function ($router) {
+    $router->post('product', 'ProductController@store');
+    $router->get('product/{id:[0-9]+}', 'ProductController@show');
+    $router->put('product/{id:[0-9]+}', 'ProductController@update');
+    $router->delete('product/{id:[0-9]+}', 'ProductController@destroy');
+    $router->get('product', 'ProductController@index'); // Added
+});
+```
+
+Test still fails. Open **ProductController.php**
+
+- Add the index method
+
+```php
+/**
+ * List of all products
+ *
+ * @return JsonResponse
+ */
+public function index()
+{
+    $product = Product::all();
+
+    return response()->json($product);
+}
+```
+
+The test now passes
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 296 ms, Memory: 18.00 MB
+
+OK (1 test, 1 assertion)
+```
+
+Amend the test to check the database
+
+- Has a record with the same details
+- Has 3 records
+
+```php
+$this->seeInDatabase('products', [
+    "name"  => $product1->name,
+    "slug"  => $product1->slug,
+    "price" => $product1->price,
+]);
+
+$this->assertSame(3, Product::all()->count());
+```
+
+Run the tests and they still pass.
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 373 ms, Memory: 18.00 MB
+
+OK (1 test, 3 assertions)
+```
+
+Expand the test further and it now fails
+
+```php
+// Then
+$this->seeJsonStructure([
+    'data' => [
+        '*' => [
+            'id',
+            'name',
+            'slug',
+            'price',
+            'created_at',
+            'updated_at',
+        ],
+    ],
+]);
+
+$this->seeJsonEquals(
+    [
+    "data" => [
+        [
+            "created_at" => (string)$product1->created_at,
+            "id" => $product1->id,
+            "image" => null,
+            "name" => $product1->name,
+            "price" => (string) $product1->price,
+            "slug" => $product1->slug,
+            "updated_at" => (string) $product1->updated_at
+        ],
+        [
+            "created_at" => (string)$product2->created_at,
+            "id" => $product2->id,
+            "image" => null,
+            "name" => $product2->name,
+            "price" => (string) $product2->price,
+            "slug" => $product2->slug,
+            "updated_at" => (string) $product2->updated_at
+        ],
+        [
+            "created_at" => (string)$product3->created_at,
+            "id" => $product3->id,
+            "image" => null,
+            "name" => $product3->name,
+            "price" => (string) $product3->price,
+            "slug" => $product3->slug,
+            "updated_at" => (string) $product3->updated_at
+            ]
+        ],
+        "links" => [
+            "first" => "http://localhost/api/product?page=1",
+            "last" => "http://localhost/api/product?page=1",
+            "next" => null,
+            "prev" => null
+        ],
+        "meta" => [
+            "current_page" => 1,
+            "from" => 1,
+            "last_page" => 1,
+            "path" => "http://localhost/api/product",
+            "per_page" => 15,
+            "to" => 3,
+            "total" => 3
+        ]
+    ]
+);
+```
+
+To fix this test create a Collection Resource called **ProductCollection.php**
+
+- As with ProductResource the make:resource command isn't available, so copy from another Laravel project.
+
+```php
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\ResourceCollection;
+
+class ProductCollection extends ResourceCollection
+{
+    /**
+     * Transform the resource collection into an array.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return parent::toArray($request);
+    }
+}
+```
+
+Open the **ProductController.php**
+
+- Add `use ProductCollection`
+- Change the index method to return the new ProductCollection with pagination
+
+```php
+// ...
+use App\Http\Resources\ProductCollection;
+// ...
+public function index()
+{
+    return new ProductCollection(Product::paginate());
+}
+```
+
+Run the tests and they now pass
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 290 ms, Memory: 18.00 MB
+
+OK (1 test, 24 assertions)
+```
+
+Run all tests and they all pass
+
+```text
+PHPUnit 8.4.3 by Sebastian Bergmann and contributors.
+
+........                                                            8 / 8 (100%)
+
+Time: 582 ms, Memory: 18.00 MB
+
+OK (8 tests, 44 assertions)
+```

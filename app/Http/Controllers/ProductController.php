@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Product;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +20,17 @@ class ProductController extends Controller
     {
         //
     }
-    
+
+    /**
+     * List of all products
+     *
+     * @return JsonResponse
+     */
+    public function index()
+    {
+        return new ProductCollection(Product::paginate());
+    }
+
     /**
      * Store a post request to the Products table
      *
