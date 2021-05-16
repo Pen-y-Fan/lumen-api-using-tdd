@@ -1,0 +1,163 @@
+// see http-client.env.json for public environemnt variables
+// Use run with 'dev' environment
+
+### Index all products
+
+GET {{host}}/api/product HTTP/1.1
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Response content-type is json", function() {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+    });
+%}
+
+### Index all products (page 2)
+
+GET {{host}}/api/product?page=2 HTTP/1.1
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Response content-type is json", function() {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+    });
+%}
+
+### show an exsiting product
+
+GET {{host}}/api/product/1 HTTP/1.1
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Response content-type is json", function() {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+    });
+%}
+
+
+### update an exsiting product
+
+PUT {{host}}/api/product/1 HTTP/1.1
+content-type: application/json
+
+{
+    "name": "sample {{$uuid}}",
+    "price": {{$randomInt}}
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200 but " + response.status + " type");
+    });
+
+    client.test("Response content-type is json", function() {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+    });
+%}
+
+### a new product must have a name
+
+POST {{host}}/api/product HTTP/1.1
+content-type: application/json
+
+{
+    "price": {{$randomInt}}
+}
+
+> {%
+    client.test("POST a product request requires a name", function() {
+        const expected = {
+            code: 422,
+            description: "Unprocessable Entity"
+        };
+        client.assert(response.status === expected.code, "Response status is not " + expected.code + " (" + expected.description + ") but " + response.status + " type");
+    });
+
+    client.test("Response content-type is json", function() {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+    });
+    client.global.set("product_id", response.body.id);
+%}
+
+### a new product must have a cost
+
+
+POST {{host}}/api/product HTTP/1.1
+content-type: application/json
+
+{
+    "name": "sample{{$randomInt}} {{$uuid}}"
+}
+
+> {%
+    client.test("POST a product request requires a price", function() {
+        const expected = {
+            code: 422,
+            description: "Unprocessable Entity"
+        };
+        client.assert(response.status === expected.code, "Response status is not " + expected.code + " (" + expected.description + ") but " + response.status + " type");
+    });
+
+    client.test("Response content-type is json", function() {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+    });
+    client.global.set("product_id", response.body.id);
+%}
+
+### Create a new product
+
+POST {{host}}/api/product HTTP/1.1
+content-type: application/json
+
+{
+    "name": "sample{{$randomInt}} {{$uuid}}",
+    "price": {{$randomInt}}
+}
+
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 201, "Response status is not 201 (Created) but " + response.status + " type");
+    });
+
+    client.test("Response content-type is json", function() {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+    });
+    client.global.set("product_id", response.body.id);
+%}
+
+### Delete an existing product
+
+// This will delete the product which has just been created, must be run after the create (POST) test
+
+DELETE {{host}}/api/product/{{product_id}} HTTP/1.1
+content-type: application/json
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 204, "Response status is not 204 (request has succeeded) but" + response.status + "type");
+    });
+
+    // there is no response data <Response body is empty> only a success code
+    client.test("Response content-type is json", function() {
+        const type = response.contentType.mimeType;
+        client.assert(type === "text/plain", "Expected 'text/plain' but received '" + type + "'");
+    });
+
+%}
