@@ -89,7 +89,10 @@ class ProductControllerTest extends TestCase
         $this->json('PUT', '/api/product/999', []);
 
         // Then
-        $this->assertResponseStatus(404);
+        $this->assertResponseStatus(422);
+
+        // Then
+        $this->seeJsonContains([]);
     }
 
 
