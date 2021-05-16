@@ -92,7 +92,6 @@ class ProductControllerTest extends TestCase
         $this->assertResponseStatus(404);
     }
 
-
     /** @test */
     public function canUpdateAProduct(): void
     {
@@ -122,8 +121,8 @@ class ProductControllerTest extends TestCase
                 'name'       => $newProduct['name'],
                 'slug'       => $newProduct['slug'],
                 'price'      => $newProduct['price'],
-                'created_at' => (string)$product->created_at,
-                'updated_at' => (string)$product->updated_at,
+                'created_at' => (string) $product->created_at,
+                'updated_at' => (string) $product->updated_at,
             ]
         );
     }
@@ -188,23 +187,23 @@ class ProductControllerTest extends TestCase
         // Then
         $this->seeJsonEquals(
             [
-                "data"  => [
+                "data" => [
                     [
-                        "created_at" => (string)$product1->created_at,
+                        "created_at" => (string) $product1->created_at,
                         "id"         => $product1->id,
                         "name"       => $product1->name,
                         "price"      => $product1->price,
                         "slug"       => $product1->slug,
                     ],
                     [
-                        "created_at" => (string)$product2->created_at,
+                        "created_at" => (string) $product2->created_at,
                         "id"         => $product2->id,
                         "name"       => $product2->name,
                         "price"      => $product2->price,
                         "slug"       => $product2->slug,
                     ],
                     [
-                        "created_at" => (string)$product3->created_at,
+                        "created_at" => (string) $product3->created_at,
                         "id"         => $product3->id,
                         "name"       => $product3->name,
                         "price"      => $product3->price,
@@ -217,11 +216,10 @@ class ProductControllerTest extends TestCase
                     "next"  => null,
                     "prev"  => null
                 ],
-                "meta"  =>
-                    ["current_page" => 1,
-                     "from"         => 1,
-                     "last_page"    => 1,
-                     "links"        => [
+                "meta" => ["current_page" => 1,
+                     "from"               => 1,
+                     "last_page"          => 1,
+                     "links"              => [
                          ["active" => false,
                           "label"  => "pagination.next",
                           "url"    => null],
@@ -234,10 +232,10 @@ class ProductControllerTest extends TestCase
                              "url"    => "http://localhost/api/product?page=1"
                          ],
                      ],
-                     "path"         => "http://localhost/api/product",
-                     "per_page"     => 15,
-                     "to"           => 3,
-                     "total"        => 3
+                     "path"     => "http://localhost/api/product",
+                     "per_page" => 15,
+                     "to"       => 3,
+                     "total"    => 3
                     ]
             ]
         );
