@@ -32,9 +32,9 @@ class ProductControllerTest extends TestCase
 
         // Confirm the data returned is the same
         $this->seeJsonContains([
-            "name"  => $product->name,
-            "slug"  => $product->slug,
-            "price" => $product->price,
+            'name'  => $product->name,
+            'slug'  => $product->slug,
+            'price' => $product->price,
         ]);
 
         // And the database has the record
@@ -54,23 +54,23 @@ class ProductControllerTest extends TestCase
         $product = Product::factory()->create();
 
         // When
-        $this->json('GET', "/api/product/" . $product->id);
+        $this->json('GET', '/api/product/' . $product->id);
 
         // Then
         $this->assertResponseOk();
 
         // Then
         $this->seeInDatabase('products', [
-            "name"  => $product->name,
-            "slug"  => $product->slug,
-            "price" => $product->price,
+            'name'  => $product->name,
+            'slug'  => $product->slug,
+            'price' => $product->price,
         ]);
 
         // Then
         $this->seeJsonContains([
-            "name"  => $product->name,
-            "slug"  => $product->slug,
-            "price" => $product->price,
+            'name'  => $product->name,
+            'slug'  => $product->slug,
+            'price' => $product->price,
         ]);
     }
 
@@ -110,9 +110,9 @@ class ProductControllerTest extends TestCase
 
         // When
         $newProduct = [
-            "name"  => $product->name . '_updated',
-            "slug"  => Str::slug($product->name . '_updated'),
-            "price" => $product->price + 10,
+            'name'  => $product->name . '_updated',
+            'slug'  => Str::slug($product->name . '_updated'),
+            'price' => $product->price + 10,
         ];
 
         $this->json('PUT', '/api/product/' . $product->id, $newProduct);
@@ -181,9 +181,9 @@ class ProductControllerTest extends TestCase
 
         // Then the database records have been created (check one)
         $this->seeInDatabase('products', [
-            "name"  => $product1->name,
-            "slug"  => $product1->slug,
-            "price" => $product1->price,
+            'name'  => $product1->name,
+            'slug'  => $product1->slug,
+            'price' => $product1->price,
         ]);
 
         // Then, the database contains 3 records
@@ -205,60 +205,60 @@ class ProductControllerTest extends TestCase
         // Then
         $this->seeJsonEquals(
             [
-                "data" => [
+                'data' => [
                     [
-                        "created_at" => (string) $product1->created_at,
-                        "id"         => $product1->id,
-                        "name"       => $product1->name,
-                        "price"      => $product1->price,
-                        "slug"       => $product1->slug,
+                        'created_at' => (string) $product1->created_at,
+                        'id'         => $product1->id,
+                        'name'       => $product1->name,
+                        'price'      => $product1->price,
+                        'slug'       => $product1->slug,
                     ],
                     [
-                        "created_at" => (string) $product2->created_at,
-                        "id"         => $product2->id,
-                        "name"       => $product2->name,
-                        "price"      => $product2->price,
-                        "slug"       => $product2->slug,
+                        'created_at' => (string) $product2->created_at,
+                        'id'         => $product2->id,
+                        'name'       => $product2->name,
+                        'price'      => $product2->price,
+                        'slug'       => $product2->slug,
                     ],
                     [
-                        "created_at" => (string) $product3->created_at,
-                        "id"         => $product3->id,
-                        "name"       => $product3->name,
-                        "price"      => $product3->price,
-                        "slug"       => $product3->slug,
+                        'created_at' => (string) $product3->created_at,
+                        'id'         => $product3->id,
+                        'name'       => $product3->name,
+                        'price'      => $product3->price,
+                        'slug'       => $product3->slug,
                     ],
                 ],
-                "links" => [
-                    "first" => "http://localhost/api/product?page=1",
-                    "last"  => "http://localhost/api/product?page=1",
-                    "next"  => null,
-                    "prev"  => null,
+                'links' => [
+                    'first' => 'http://localhost/api/product?page=1',
+                    'last'  => 'http://localhost/api/product?page=1',
+                    'next'  => null,
+                    'prev'  => null,
                 ],
-                "meta" => [
-                    "current_page" => 1,
-                    "from"         => 1,
-                    "last_page"    => 1,
-                    "links"        => [
+                'meta' => [
+                    'current_page' => 1,
+                    'from'         => 1,
+                    'last_page'    => 1,
+                    'links'        => [
                         [
-                            "active" => false,
-                            "label"  => "pagination.next",
-                            "url"    => null,
+                            'active' => false,
+                            'label'  => 'pagination.next',
+                            'url'    => null,
                         ],
                         [
-                            "active" => false,
-                            "label"  => "pagination.previous",
-                            "url"    => null,
+                            'active' => false,
+                            'label'  => 'pagination.previous',
+                            'url'    => null,
                         ],
                         [
-                            "active" => true,
-                            "label"  => "1",
-                            "url"    => "http://localhost/api/product?page=1",
+                            'active' => true,
+                            'label'  => '1',
+                            'url'    => 'http://localhost/api/product?page=1',
                         ],
                     ],
-                    "path"     => "http://localhost/api/product",
-                    "per_page" => 15,
-                    "to"       => 3,
-                    "total"    => 3,
+                    'path'     => 'http://localhost/api/product',
+                    'per_page' => 15,
+                    'to'       => 3,
+                    'total'    => 3,
                 ],
             ]
         );
