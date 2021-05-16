@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
