@@ -11,7 +11,9 @@ class ProductControllerTest extends TestCase
 {
     use DatabaseMigrations;
 
-    /** @test */
+    /**
+     * @test
+     */
     public function canCreateAProduct(): void
     {
         $product = Product::factory()->make();
@@ -43,7 +45,9 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    /**
+     * @test
+     */
     public function canReturnAProduct(): void
     {
         // Given
@@ -70,7 +74,9 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    /**
+     * @test
+     */
     public function willFailWithA404IfProductIsNotFound(): void
     {
         // Given
@@ -81,7 +87,9 @@ class ProductControllerTest extends TestCase
         $this->assertResponseStatus(404);
     }
 
-    /** @test */
+    /**
+     * @test
+     */
     public function willFailWithA404IfAProductWeWantToUpdateIsNotFound(): void
     {
         // Given no product
@@ -92,7 +100,9 @@ class ProductControllerTest extends TestCase
         $this->assertResponseStatus(404);
     }
 
-    /** @test */
+    /**
+     * @test
+     */
     public function canUpdateAProduct(): void
     {
         // Given
@@ -127,7 +137,9 @@ class ProductControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    /**
+     * @test
+     */
     public function willFailWithA404IfProductWeWantToDeleteIsNotFound(): void
     {
         // Given
@@ -137,7 +149,9 @@ class ProductControllerTest extends TestCase
         $this->assertResponseStatus(404);
     }
 
-    /** @test */
+    /**
+     * @test
+     */
     public function canDeleteAProduct(): void
     {
         // Given
@@ -152,7 +166,9 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    /**
+     * @test
+     */
     public function canReturnACollectionOfPaginatedProducts(): void
     {
         $product1 = Product::factory()->create();
