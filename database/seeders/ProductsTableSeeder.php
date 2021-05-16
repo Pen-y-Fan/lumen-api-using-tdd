@@ -1,5 +1,8 @@
 <?php
 
+namespace Database\Seeders;
+
+use App\Product;
 use Illuminate\Database\Seeder;
 
 class ProductsTableSeeder extends Seeder
@@ -11,7 +14,7 @@ class ProductsTableSeeder extends Seeder
      */
     public function run()
     {
-        factory(App\Product::class, 10)->create();
+        Product::factory(10)->create();
         $this->command->info('Ten Products created');
         gc_collect_cycles();
     }
