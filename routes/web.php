@@ -1,5 +1,7 @@
 <?php
 
+/** @var \Laravel\Lumen\Routing\Router $router */
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -11,13 +13,15 @@
 |
 */
 
+use Illuminate\Support\Str;
+
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
 // Generate random string
 $router->get('appKey', function () {
-    return \Illuminate\Support\Str::random(32);
+    return Str::random(32);
 });
 
 $router->group(['prefix' => 'api'], function ($router) {
