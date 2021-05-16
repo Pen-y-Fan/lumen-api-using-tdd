@@ -8,6 +8,7 @@ use App\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -36,14 +37,15 @@ class ProductController extends Controller
      *
      * @param Request $request
      * @return JsonResponse
+     * @throws ValidationException
      */
     public function store(Request $request): JsonResponse
     {
-        $product = Product::create([
-            'name'  => $request->name,
-            'slug'  => Str::slug($request->name),
-            'price' => $request->price
-        ]);
+        $data = $this->validate($request, $this->criteria());
+
+        $data['slug'] = Str::slug($data['name']);
+
+        $product = Product::create($data);
 
         return response()->json(new ProductResource($product), 201);
     }
@@ -51,7 +53,7 @@ class ProductController extends Controller
     /**
      * Show a product from the Product DB
      *
-     * @param int $id, product Id
+     * @param int $id
      * @return JsonResponse
      */
     public function show(int $id): JsonResponse
@@ -65,11 +67,14 @@ class ProductController extends Controller
      * Update a product already in the Product DB
      *
      * @param Request $request the updated product data
-     * @param int $id the ProductId of the product to be updated
+     * @param int $id
      * @return JsonResponse
+     * @throws ValidationException
      */
     public function update(Request $request, int $id): JsonResponse
     {
+        $this->validate($request, $this->criteria());
+
         $product = Product::findOrFail($id);
 
         $product->update([
@@ -81,6 +86,12 @@ class ProductController extends Controller
         return response()->json(new ProductResource($product));
     }
 
+    /**
+     * Delete a product already in the Product DB
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
     public function destroy(int $id): JsonResponse
     {
         $product = Product::findOrFail($id);
@@ -88,5 +99,13 @@ class ProductController extends Controller
         $product->delete();
 
         return response()->json([], 204);
+    }
+
+    private function criteria(): array
+    {
+        return [
+            'name'  => 'required|unique:products|max:255',
+            'price' => 'required|integer',
+        ];
     }
 }
