@@ -11,10 +11,8 @@ class ProductControllerTest extends TestCase
 {
     use DatabaseMigrations;
 
-    /**
-     * @test
-     */
-    public function canCreateAProduct(): void
+
+    public function testCanCreateAProduct(): void
     {
         $product = Product::factory()->make();
 
@@ -45,10 +43,8 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * @test
-     */
-    public function canReturnAProduct(): void
+
+    public function testCanReturnAProduct(): void
     {
         // Given
         $product = Product::factory()->create();
@@ -74,10 +70,8 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * @test
-     */
-    public function willFailWithA404IfProductIsNotFound(): void
+
+    public function testWillFailWithA404IfProductIsNotFound(): void
     {
         // Given
         // Product 999 does not exist.
@@ -87,10 +81,8 @@ class ProductControllerTest extends TestCase
         $this->assertResponseStatus(404);
     }
 
-    /**
-     * @test
-     */
-    public function willFailWithA404IfAProductWeWantToUpdateIsNotFound(): void
+
+    public function testWillFailWithA404IfAProductWeWantToUpdateIsNotFound(): void
     {
         // Given no product
         // When
@@ -100,10 +92,8 @@ class ProductControllerTest extends TestCase
         $this->assertResponseStatus(404);
     }
 
-    /**
-     * @test
-     */
-    public function canUpdateAProduct(): void
+
+    public function testCanUpdateAProduct(): void
     {
         // Given
         $product = Product::factory()->create();
@@ -137,10 +127,8 @@ class ProductControllerTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
-    public function willFailWithA404IfProductWeWantToDeleteIsNotFound(): void
+
+    public function testWillFailWithA404IfProductWeWantToDeleteIsNotFound(): void
     {
         // Given
         // When
@@ -149,10 +137,8 @@ class ProductControllerTest extends TestCase
         $this->assertResponseStatus(404);
     }
 
-    /**
-     * @test
-     */
-    public function canDeleteAProduct(): void
+
+    public function testCanDeleteAProduct(): void
     {
         // Given
         $product = Product::factory()->create();
@@ -166,10 +152,8 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * @test
-     */
-    public function canReturnACollectionOfPaginatedProducts(): void
+
+    public function testCanReturnACollectionOfPaginatedProducts(): void
     {
         $product1 = Product::factory()->create();
         $product2 = Product::factory()->create();

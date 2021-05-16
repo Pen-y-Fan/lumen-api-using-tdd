@@ -11,7 +11,7 @@ class ExampleTest extends TestCase
     {
         $this->get('/');
 
-        self::assertEquals(
+        self::assertSame(
             $this->app->version(),
             $this->response->getContent()
         );
