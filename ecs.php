@@ -40,7 +40,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         SetList::SPACES,
         SetList::ARRAY,
         SetList::DOCBLOCK,
-//        SetList::NAMESPACES,
+        SetList::NAMESPACES,
 //        SetList::CONTROL_STRUCTURES,
 //        SetList::CLEAN_CODE,
 //        SetList::STRICT,

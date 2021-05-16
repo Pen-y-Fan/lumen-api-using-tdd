@@ -3,9 +3,9 @@
 namespace Tests\Feature\Http\Controllers;
 
 use App\Product;
-use Tests\TestCase;
-use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Str;
+use Laravel\Lumen\Testing\DatabaseMigrations;
+use Tests\TestCase;
 
 class ProductControllerTest extends TestCase
 {
