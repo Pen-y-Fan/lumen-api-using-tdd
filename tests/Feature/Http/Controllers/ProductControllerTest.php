@@ -32,7 +32,7 @@ class ProductControllerTest extends TestCase
         $this->seeJsonContains([
             "name"  => $product->name,
             "slug"  => $product->slug,
-            "price" => $product->price
+            "price" => $product->price,
         ]);
 
         // And the database has the record
@@ -66,7 +66,7 @@ class ProductControllerTest extends TestCase
         $this->seeJsonContains([
             "name"  => $product->name,
             "slug"  => $product->slug,
-            "price" => $product->price
+            "price" => $product->price,
         ]);
     }
 
@@ -147,7 +147,9 @@ class ProductControllerTest extends TestCase
         // Then
         $this->assertResponseStatus(204);
 
-        $this->notSeeInDatabase('products', ['id' => $product->id,]);
+        $this->notSeeInDatabase('products', [
+            'id' => $product->id,
+        ]);
     }
 
     /** @test */
@@ -208,35 +210,40 @@ class ProductControllerTest extends TestCase
                         "name"       => $product3->name,
                         "price"      => $product3->price,
                         "slug"       => $product3->slug,
-                    ]
+                    ],
                 ],
                 "links" => [
                     "first" => "http://localhost/api/product?page=1",
                     "last"  => "http://localhost/api/product?page=1",
                     "next"  => null,
-                    "prev"  => null
+                    "prev"  => null,
                 ],
-                "meta" => ["current_page" => 1,
-                     "from"               => 1,
-                     "last_page"          => 1,
-                     "links"              => [
-                         ["active" => false,
-                          "label"  => "pagination.next",
-                          "url"    => null],
-                         ["active" => false,
-                          "label"  => "pagination.previous",
-                          "url"    => null],
-                         [
-                             "active" => true,
-                             "label"  => "1",
-                             "url"    => "http://localhost/api/product?page=1"
-                         ],
-                     ],
-                     "path"     => "http://localhost/api/product",
-                     "per_page" => 15,
-                     "to"       => 3,
-                     "total"    => 3
-                    ]
+                "meta" => [
+                    "current_page" => 1,
+                    "from"         => 1,
+                    "last_page"    => 1,
+                    "links"        => [
+                        [
+                            "active" => false,
+                            "label"  => "pagination.next",
+                            "url"    => null,
+                        ],
+                        [
+                            "active" => false,
+                            "label"  => "pagination.previous",
+                            "url"    => null,
+                        ],
+                        [
+                            "active" => true,
+                            "label"  => "1",
+                            "url"    => "http://localhost/api/product?page=1",
+                        ],
+                    ],
+                    "path"     => "http://localhost/api/product",
+                    "per_page" => 15,
+                    "to"       => 3,
+                    "total"    => 3,
+                ],
             ]
         );
     }

@@ -41,12 +41,12 @@ chown:
 
 # The project needs to have phpunit.xml or phpunit.xml.dist in the root folder
 .PHONY : tests
-tests:
+pu:
 	docker run --init -it --rm -v $(shell pwd):/project -v $(shell pwd)/tmp-phpqa:/tmp -w /project \
     		jakzal/phpqa:1.50-php7.4-alpine phpunit
 
 # The project needs to have phpstan.neon in the root folder
-phpstan:
+ps:
 	docker run --init -it --rm -v $(shell pwd):/project -v $(shell pwd)/tmp-phpqa:/tmp -w /project \
 		jakzal/phpqa:1.50-php7.4-alpine phpstan analyse
 
@@ -61,12 +61,12 @@ fixcode:
     		jakzal/phpqa:1.50-php7.4-alpine phpcbf public --standard=phpcs.xml
 
 # The project needs to have ecs.php in the root folder
-check-cs:
+cc:
 	docker run --init -it --rm -v $(shell pwd):/project -v $(shell pwd)/tmp-phpqa:/tmp -w /project \
     		jakzal/phpqa:1.50-php7.4-alpine ecs check
 
 # The project needs to have ecs.php in the root folder
-fix-cs:
+fc:
 	docker run --init -it --rm -v $(shell pwd):/project -v $(shell pwd)/tmp-phpqa:/tmp -w /project \
     		jakzal/phpqa:1.50-php7.4-alpine ecs check --fix
 

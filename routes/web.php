@@ -24,7 +24,9 @@ $router->get('appKey', function () {
     return Str::random(32);
 });
 
-$router->group(['prefix' => 'api'], function ($router) {
+$router->group([
+    'prefix' => 'api',
+], function ($router) {
     $router->post('product', 'ProductController@store');
     $router->get('product/{id:[0-9]+}', 'ProductController@show');
     $router->put('product/{id:[0-9]+}', 'ProductController@update');
