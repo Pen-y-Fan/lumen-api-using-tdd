@@ -11,7 +11,7 @@ GET {{host}}/api/product HTTP/1.1
     });
 
     client.test("Response content-type is json", function() {
-        const type = response.contentType.mimeType;
+        var type = response.contentType.mimeType;
         client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
     });
 %}
@@ -26,7 +26,7 @@ GET {{host}}/api/product?page=2 HTTP/1.1
     });
 
     client.test("Response content-type is json", function() {
-        const type = response.contentType.mimeType;
+        var type = response.contentType.mimeType;
         client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
     });
 %}
@@ -41,7 +41,7 @@ GET {{host}}/api/product/1 HTTP/1.1
     });
 
     client.test("Response content-type is json", function() {
-        const type = response.contentType.mimeType;
+        var type = response.contentType.mimeType;
         client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
     });
 %}
@@ -63,7 +63,7 @@ content-type: application/json
     });
 
     client.test("Response content-type is json", function() {
-        const type = response.contentType.mimeType;
+        var type = response.contentType.mimeType;
         client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
     });
 %}
@@ -79,7 +79,7 @@ content-type: application/json
 
 > {%
     client.test("POST a product request requires a name", function() {
-        const expected = {
+        var expected = {
             code: 422,
             description: "Unprocessable Entity"
         };
@@ -87,7 +87,7 @@ content-type: application/json
     });
 
     client.test("Response content-type is json", function() {
-        const type = response.contentType.mimeType;
+        var type = response.contentType.mimeType;
         client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
     });
     client.global.set("product_id", response.body.id);
@@ -105,7 +105,7 @@ content-type: application/json
 
 > {%
     client.test("POST a product request requires a price", function() {
-        const expected = {
+        var expected = {
             code: 422,
             description: "Unprocessable Entity"
         };
@@ -113,7 +113,7 @@ content-type: application/json
     });
 
     client.test("Response content-type is json", function() {
-        const type = response.contentType.mimeType;
+        var type = response.contentType.mimeType;
         client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
     });
     client.global.set("product_id", response.body.id);
@@ -136,7 +136,7 @@ content-type: application/json
     });
 
     client.test("Response content-type is json", function() {
-        const type = response.contentType.mimeType;
+        var type = response.contentType.mimeType;
         client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
     });
     client.global.set("product_id", response.body.id);
@@ -156,7 +156,7 @@ content-type: application/json
 
     // there is no response data <Response body is empty> only a success code
     client.test("Response content-type is json", function() {
-        const type = response.contentType.mimeType;
+        var type = response.contentType.mimeType;
         client.assert(type === "text/plain", "Expected 'text/plain' but received '" + type + "'");
     });
 
