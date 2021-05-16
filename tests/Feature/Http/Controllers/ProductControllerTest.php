@@ -3,20 +3,18 @@
 namespace Tests\Feature\Http\Controllers;
 
 use App\Product;
-use Faker\Factory;
 use Tests\TestCase;
 use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
 use Illuminate\Support\Str;
 
 class ProductControllerTest extends TestCase
 {
     use DatabaseMigrations;
 
-    /** @test  */
+    /** @test */
     public function canCreateAProduct(): void
     {
-        $product = factory('App\Product')->make();
+        $product = Product::factory()->make();
 
         // When
         // post request create product
@@ -46,13 +44,13 @@ class ProductControllerTest extends TestCase
     }
 
     /** @test */
-    public function canReturnAProduct()
+    public function canReturnAProduct(): void
     {
         // Given
-        $product = factory('App\Product')->create();
+        $product = Product::factory()->create();
 
         // When
-        $this->json('GET', "api/product/$product->id");
+        $this->json('GET', "/api/product/" . $product->id);
 
         // Then
         $this->assertResponseOk();
@@ -73,22 +71,22 @@ class ProductControllerTest extends TestCase
     }
 
     /** @test */
-    public function willFailWithA404IfProductIsNotFound()
+    public function willFailWithA404IfProductIsNotFound(): void
     {
         // Given
-            // Product 999 does not exist.
+        // Product 999 does not exist.
         // When
-        $this->json('GET', 'api/product/999');
+        $this->json('GET', '/api/product/999');
         // Then
         $this->assertResponseStatus(404);
     }
 
     /** @test */
-    public function willFailWithA404IfAProductWeWantToUpdateIsNotFound()
+    public function willFailWithA404IfAProductWeWantToUpdateIsNotFound(): void
     {
         // Given no product
         // When
-        $this->json('PUT', 'api/product/999', []);
+        $this->json('PUT', '/api/product/999', []);
 
         // Then
         $this->assertResponseStatus(404);
@@ -96,10 +94,11 @@ class ProductControllerTest extends TestCase
 
 
     /** @test */
-    public function canUpdateAProduct()
+    public function canUpdateAProduct(): void
     {
         // Given
-        $product = factory('App\Product')->create();
+        $product = Product::factory()->create();
+
         // When
         $newProduct = [
             "name"  => $product->name . '_updated',
@@ -107,7 +106,7 @@ class ProductControllerTest extends TestCase
             "price" => $product->price + 10,
         ];
 
-        $this->json('PUT', 'api/product/' . $product->id, $newProduct);
+        $this->json('PUT', '/api/product/' . $product->id, $newProduct);
 
         // Then
         $this->assertResponseOk();
@@ -123,43 +122,43 @@ class ProductControllerTest extends TestCase
                 'name'       => $newProduct['name'],
                 'slug'       => $newProduct['slug'],
                 'price'      => $newProduct['price'],
-                'created_at' => (string) $product->created_at,
-                'updated_at' => (string) $product->updated_at,
+                'created_at' => (string)$product->created_at,
+                'updated_at' => (string)$product->updated_at,
             ]
         );
     }
 
     /** @test */
-    public function willFailWithA404IfProductWeWantToDeleteIsNotFound()
+    public function willFailWithA404IfProductWeWantToDeleteIsNotFound(): void
     {
         // Given
         // When
-        $this->json('DELETE', 'api/product/999');
+        $this->json('DELETE', '/api/product/999');
         // Then
         $this->assertResponseStatus(404);
     }
 
     /** @test */
-    public function canDeleteAProduct()
+    public function canDeleteAProduct(): void
     {
         // Given
-        $product = factory('App\Product')->create();
+        $product = Product::factory()->create();
         // When
-        $this->json('DELETE', 'api/product/' . $product->id);
+        $this->json('DELETE', '/api/product/' . $product->id);
         // Then
         $this->assertResponseStatus(204);
 
-        $this->notSeeInDatabase('products', ['id'  => $product->id,]);
+        $this->notSeeInDatabase('products', ['id' => $product->id,]);
     }
 
     /** @test */
-    public function canReturnACollectionOfPaginatedProducts()
+    public function canReturnACollectionOfPaginatedProducts(): void
     {
-        $product1 = factory('App\Product')->create();
-        $product2 = factory('App\Product')->create();
-        $product3 = factory('App\Product')->create();
-
+        $product1 = Product::factory()->create();
+        $product2 = Product::factory()->create();
+        $product3 = Product::factory()->create();
         $this->json('GET', '/api/product');
+        $this->withoutMiddleware();
 
         $this->assertResponseOk();
 
@@ -171,7 +170,7 @@ class ProductControllerTest extends TestCase
         ]);
 
         // Then, the database contains 3 records
-        $this->assertSame(3, Product::all()->count());
+        self::assertSame(3, Product::all()->count());
 
         // Then
         $this->seeJsonStructure([
@@ -182,7 +181,6 @@ class ProductControllerTest extends TestCase
                     'slug',
                     'price',
                     'created_at',
-                    'updated_at',
                 ],
             ],
         ]);
@@ -190,50 +188,57 @@ class ProductControllerTest extends TestCase
         // Then
         $this->seeJsonEquals(
             [
-            "data" => [
-                [
-                    "created_at" => (string)$product1->created_at,
-                    "id" => $product1->id,
-                    "image" => null,
-                    "name" => $product1->name,
-                    "price" => (string) $product1->price,
-                    "slug" => $product1->slug,
-                    "updated_at" => (string) $product1->updated_at
-                ],
-                [
-                    "created_at" => (string)$product2->created_at,
-                    "id" => $product2->id,
-                    "image" => null,
-                    "name" => $product2->name,
-                    "price" => (string) $product2->price,
-                    "slug" => $product2->slug,
-                    "updated_at" => (string) $product2->updated_at
-                ],
-                [
-                    "created_at" => (string)$product3->created_at,
-                    "id" => $product3->id,
-                    "image" => null,
-                    "name" => $product3->name,
-                    "price" => (string) $product3->price,
-                    "slug" => $product3->slug,
-                    "updated_at" => (string) $product3->updated_at
+                "data"  => [
+                    [
+                        "created_at" => (string)$product1->created_at,
+                        "id"         => $product1->id,
+                        "name"       => $product1->name,
+                        "price"      => $product1->price,
+                        "slug"       => $product1->slug,
+                    ],
+                    [
+                        "created_at" => (string)$product2->created_at,
+                        "id"         => $product2->id,
+                        "name"       => $product2->name,
+                        "price"      => $product2->price,
+                        "slug"       => $product2->slug,
+                    ],
+                    [
+                        "created_at" => (string)$product3->created_at,
+                        "id"         => $product3->id,
+                        "name"       => $product3->name,
+                        "price"      => $product3->price,
+                        "slug"       => $product3->slug,
                     ]
                 ],
                 "links" => [
                     "first" => "http://localhost/api/product?page=1",
-                    "last" => "http://localhost/api/product?page=1",
-                    "next" => null,
-                    "prev" => null
+                    "last"  => "http://localhost/api/product?page=1",
+                    "next"  => null,
+                    "prev"  => null
                 ],
-                "meta" => [
-                    "current_page" => 1,
-                    "from" => 1,
-                    "last_page" => 1,
-                    "path" => "http://localhost/api/product",
-                    "per_page" => 15,
-                    "to" => 3,
-                    "total" => 3
-                ]
+                "meta"  =>
+                    ["current_page" => 1,
+                     "from"         => 1,
+                     "last_page"    => 1,
+                     "links"        => [
+                         ["active" => false,
+                          "label"  => "pagination.next",
+                          "url"    => null],
+                         ["active" => false,
+                          "label"  => "pagination.previous",
+                          "url"    => null],
+                         [
+                             "active" => true,
+                             "label"  => "1",
+                             "url"    => "http://localhost/api/product?page=1"
+                         ],
+                     ],
+                     "path"         => "http://localhost/api/product",
+                     "per_page"     => 15,
+                     "to"           => 3,
+                     "total"        => 3
+                    ]
             ]
         );
     }
